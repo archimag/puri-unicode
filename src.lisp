@@ -22,7 +22,7 @@
 ;; Original version from ACL 6.1:
 ;; uri.cl,v 2.3.6.4.2.1 2001/08/09 17:42:39 layer
 ;;
-;; $Id: src.lisp,v 1.2 2003/07/18 20:51:37 kevin Exp $
+;; $Id: src.lisp,v 1.3 2003/07/18 21:00:54 kevin Exp $
 
 (defpackage #:puri
   (:use #:cl)
@@ -61,14 +61,12 @@
 
 (eval-when (compile) (declaim (optimize (speed 3))))
 
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defvar if*-keyword-list '("then" "thenret" "else" "elseif")))
 
 #-allegro
-(define-condition parse-error (error)
-  ()
-  )
-
+(define-condition parse-error (error)  ())
 
 (defun .parse-error (fmt &rest args)
   #+allegro (apply #'excl::.parse-error fmt args)
@@ -85,7 +83,6 @@
 
 #-allegro (defvar *current-case-mode* :case-insensitive-upper)
 
-;; From Larry Hunter with modifications
 (defun position-char (char string start max)
   (declare (optimize (speed 3) (safety 0) (space 0))
 	   (fixnum start max) (simple-string string))

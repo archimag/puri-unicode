@@ -1,16 +1,16 @@
-cl-uri (1.2-1) unstable; urgency=low
+cl-puri (1.2-1) unstable; urgency=low
 
-  * More porting fixes
+  * More porting fixes. Now passes 126/126 regression tests.
 
  -- Kevin M. Rosenberg <kmr@debian.org>  Fri, 18 Jul 2003 13:59:51 -0600
 
-cl-uri (1.1-1) unstable; urgency=low
+cl-puri (1.1-1) unstable; urgency=low
 
   * Fix some porting issues
 
  -- Kevin M. Rosenberg <kmr@debian.org>  Fri, 18 Jul 2003 08:59:04 -0600
 
-cl-uri (1.0) unstable; urgency=low
+cl-puri (1.0) unstable; urgency=low
 
   * Initial upload
   * Changes compared to upstream: 

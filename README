@@ -12,7 +12,8 @@ LLGPL as include in this distribution.
 
 A regression package is include which uses Franz's open-source
 tester library. I've also ported that library for use on other
-CL implementations.
+CL implementations. Puri completes 126/126 regression tests
+successfully.
 
 Puri home: http://files.b9.com/puri/
 Portable tester home: http://files.b9.com/tester/
