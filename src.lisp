@@ -26,6 +26,7 @@
 
 (defpackage #:puri
   (:use #:cl)
+  #-allegro (:nicknames #:net.uri)
   (:export
    #:uri				; the type and a function
    #:uri-p
