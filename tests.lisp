@@ -20,7 +20,7 @@
 ;; Original version from ACL 6.1:
 ;; t-uri.cl,v 1.3.6.3.2.1 2001/08/09 17:42:43 layer
 ;;
-;; $Id: tests.lisp,v 1.5 2003/07/20 18:51:48 kevin Exp $
+;; $Id$
 
 
 (defpackage #:puri-tests (:use #:puri #:cl #:ptester))

@@ -22,7 +22,7 @@
 ;; Original version from ACL 6.1:
 ;; uri.cl,v 2.3.6.4.2.1 2001/08/09 17:42:39 layer
 ;;
-;; $Id: src.lisp,v 1.10 2003/07/20 21:03:54 kevin Exp $
+;; $Id$
 
 (defpackage #:puri
   (:use #:cl)
