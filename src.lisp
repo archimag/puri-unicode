@@ -22,7 +22,7 @@
 ;; Original version from ACL 6.1:
 ;; uri.cl,v 2.3.6.4.2.1 2001/08/09 17:42:39 layer
 ;;
-;; $Id: src.lisp,v 1.7 2003/07/19 20:32:48 kevin Exp $
+;; $Id: src.lisp,v 1.8 2003/07/20 16:25:21 kevin Exp $
 
 (defpackage #:puri
   (:use #:cl)
@@ -63,8 +63,6 @@
   (declaim (optimize (speed 3))))
 
 
-#-(or allegro lispworks)
-(define-condition parse-error (error)  ())
 
 #-allegro
 (defun parse-body (forms &optional env)
@@ -99,10 +97,19 @@
   (subseq str 0 size))
 
 
+#-(or allegro lispworks)
+(define-condition parse-error (error)
+  ((fmt-control :initarg :fmt-control
+		:reader fmt-control)
+   (fmt-args :initarg :fmt-args
+		  :reader fmt-args))
+  (:report (lambda (c stream)
+	     (format stream "Parse error: ")
+	     (apply #'format stream (fmt-control c) (fmt-args c)))))
+
 #-allegro
 (defun .parse-error (fmt &rest args)
-  (error (make-condition 'parse-error :format-control fmt
-			 :format-arguments args)))
+  (error (make-condition 'parse-error :fmt-control fmt :fmt-args args)))
 
 #-allegro
 (defun internal-reader-error (stream fmt &rest args)
