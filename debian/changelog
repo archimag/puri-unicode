@@ -1,3 +1,9 @@
+cl-puri (1.2.4-1) unstable; urgency=low
+
+  * Fix typo for non-Allegro / non-SBCL platforms
+
+ -- Kevin M. Rosenberg <kmr@debian.org>  Fri, 18 Jul 2003 21:11:54 -0600
+
 cl-puri (1.2.3-1) unstable; urgency=low
 
   * Include uri.html documentation file.

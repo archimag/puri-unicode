@@ -22,7 +22,7 @@
 ;; Original version from ACL 6.1:
 ;; uri.cl,v 2.3.6.4.2.1 2001/08/09 17:42:39 layer
 ;;
-;; $Id: src.lisp,v 1.3 2003/07/18 21:00:54 kevin Exp $
+;; $Id: src.lisp,v 1.4 2003/07/19 03:12:18 kevin Exp $
 
 (defpackage #:puri
   (:use #:cl)
@@ -65,7 +65,7 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defvar if*-keyword-list '("then" "thenret" "else" "elseif")))
 
-#-allegro
+#-(or allegro lispworks)
 (define-condition parse-error (error)  ())
 
 (defun .parse-error (fmt &rest args)
@@ -756,6 +756,7 @@ URI ~s contains illegal character ~s at position ~d."
        (sb-kernel:shrink-vector new-string new-i)
        #-(or allegro sbcl)
        (subseq new-string 0 new-i)
+       #+(or allegro sbcl)
        new-string)
     (if* (char= #\% (setq ch (schar string i)))
        then (when (> (+ i 3) max)
@@ -882,6 +883,7 @@ URI ~s contains illegal character ~s at position ~d."
        (sb-kernel:shrink-vector new-string (incf new-i))
        #-(or allegro sbcl)
        (subseq new-string 0 (incf new-i))
+       #+(or allegro sbcl)
        new-string)
     (setq ci (char-int (setq c (schar string i))))
     (if* (or (null reserved-chars)
