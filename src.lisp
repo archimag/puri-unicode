@@ -1,4 +1,4 @@
-;; -*- mode: common-lisp; package: net.uri -*-
+;; -*- mode: common-lisp; package: puri -*-
 ;; Support for URIs in Allegro.
 ;; For general URI information see RFC2396.
 ;;
@@ -22,7 +22,7 @@
 ;; Original version from ACL 6.1:
 ;; uri.cl,v 2.3.6.4.2.1 2001/08/09 17:42:39 layer
 ;;
-;; $Id: src.lisp,v 1.1 2003/07/18 20:34:23 kevin Exp $
+;; $Id: src.lisp,v 1.2 2003/07/18 20:51:37 kevin Exp $
 
 (defpackage #:puri
   (:use #:cl)
@@ -57,7 +57,7 @@
    #:unintern-uri
    #:do-all-uris))
 
-(in-package :net.uri)
+(in-package #:puri)
 
 (eval-when (compile) (declaim (optimize (speed 3))))
 
@@ -1285,9 +1285,9 @@ excl::
 #+allegro
 (locally (declare (special std-lisp-readtable))
   (let ((*readtable* std-lisp-readtable))
-    (set-dispatch-macro-character #\# #\u #'net.uri::sharp-u)))
+    (set-dispatch-macro-character #\# #\u #'puri::sharp-u)))
 #-allegro
-(set-dispatch-macro-character #\# #\u #'net.uri::sharp-u)
+(set-dispatch-macro-character #\# #\u #'puri::sharp-u)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

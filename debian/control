@@ -12,5 +12,5 @@ Recommends: cl-tester
 Description: Common Lisp Portable URI Library
  This is portable Universal Resource Identifier (RFC 2396)
  library for Common Lisp programs. It's is based on Franz,
- Inc's opensource package with porting work perform to run on
- other platforms. A regression test package is included.
+ Inc's opensource package and ported to run on
+ other CL implementations. A regression test package is included.
