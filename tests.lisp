@@ -20,7 +20,7 @@
 ;; Original version from ACL 6.1:
 ;; t-uri.cl,v 1.3.6.3.2.1 2001/08/09 17:42:43 layer
 ;;
-;; $Id: tests.lisp,v 1.2 2003/07/18 23:06:11 kevin Exp $
+;; $Id: tests.lisp,v 1.3 2003/07/18 23:11:37 kevin Exp $
 
 
 (defpackage #:puri-tests (:use #:puri #:cl #:util.test))
@@ -408,6 +408,10 @@
     `(progn ,@(nreverse res)))
   )
 
-(eval
- `(with-tests (:name "puri")
-   ,@*tests*))
+(defun do-tests ()
+  (eval
+   `(with-tests (:name "puri")
+     ,*tests*))
+  t)
+
+

@@ -25,5 +25,6 @@
     ((:file "tests")))
 
 (defmethod perform ((o test-op) (c (eql (find-system 'puri-tests))))
-  (or (funcall (intern (symbol-name '#:do-tests) (find-package :rt)))
+  (or (funcall (intern (symbol-name '#:do-tests)
+		       (find-package :puri-tests)))
       (error "test-op failed")))
