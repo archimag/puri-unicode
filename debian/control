@@ -1,0 +1,16 @@
+Source: cl-puri
+Section: devel
+Priority: optional
+Maintainer: Kevin M. Rosenberg <kmr@debian.org>
+Build-Depends-Indep: debhelper (>= 4.0.0)
+Standards-Version: 3.6.0
+
+Package: cl-puri
+Architecture: all
+Depends: ${shlibs:Depends}, common-lisp-controller (>= 3.47)
+Recommends: cl-tester
+Description: Common Lisp Portable URI Library
+ This is portable Universal Resource Identifier (RFC 2396)
+ library for Common Lisp programs. It's is based on Franz,
+ Inc's opensource package with porting work perform to run on
+ other platforms. A regression test package is included.

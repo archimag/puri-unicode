@@ -1,0 +1,21 @@
+cl-uri (1.2-1) unstable; urgency=low
+
+  * More porting fixes
+
+ -- Kevin M. Rosenberg <kmr@debian.org>  Fri, 18 Jul 2003 13:59:51 -0600
+
+cl-uri (1.1-1) unstable; urgency=low
+
+  * Fix some porting issues
+
+ -- Kevin M. Rosenberg <kmr@debian.org>  Fri, 18 Jul 2003 08:59:04 -0600
+
+cl-uri (1.0) unstable; urgency=low
+
+  * Initial upload
+  * Changes compared to upstream: 
+     - Added .asd file for use with ASDF
+     - Include if* source in the uri-src.lisp file
+     - Ported from AllegroCL specific functions
+
+ -- Kevin M. Rosenberg <kmr@debian.org>  Thu, 17 Jul 2003 21:39:34 -0600
