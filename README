@@ -1,19 +1,22 @@
 PURI - Portable URI Library
 
-Kevin Rosenberg <kevin@rosenberg.net>
 Franz, Inc <http://www.franz.com>
-
+Kevin Rosenberg <kevin@rosenberg.net>
 
 This is portable Universal Resource Identifier library for Common Lisp
 programs. It parses URI according to the RFC 2396 specification. It's
-is based on Franz, Inc's opensource URI package and hash been
-ported to work other CL implementations. It is licensed with the
-LLGPL as include in this distribution.
+is based on Franz, Inc's opensource URI package and has been ported to
+work other CL implementations. It is licensed under the LLGPL which
+is included in this distribution.
 
-A regression package is include which uses Franz's open-source
-tester library. I've also ported that library for use on other
-CL implementations. Puri completes 126/126 regression tests
-successfully.
+A regression suite is included which uses Franz's open-source tester
+library. I've ported that library for use on other CL
+implementations. Puri completes 126/126 regression tests successfully.
+
+Franz's unmodified documentation file is included in the file
+uri.html. The only divergence in usage between Puri and Franz's
+package is that Puri's symbols are located in the package PURI while
+Franz's original uses the package NET.URI.
 
 Puri home: http://files.b9.com/puri/
 Portable tester home: http://files.b9.com/tester/

@@ -1,3 +1,9 @@
+cl-puri (1.2.3-1) unstable; urgency=low
+
+  * Include uri.html documentation file.
+
+ -- Kevin M. Rosenberg <kmr@debian.org>  Fri, 18 Jul 2003 19:57:03 -0600
+
 cl-puri (1.2.2-1) unstable; urgency=low
 
   * Improve tests.lisp
