@@ -20,7 +20,7 @@
 ;; Original version from ACL 6.1:
 ;; t-uri.cl,v 1.3.6.3.2.1 2001/08/09 17:42:43 layer
 ;;
-;; $Id: tests.lisp,v 1.3 2003/07/18 23:11:37 kevin Exp $
+;; $Id: tests.lisp,v 1.4 2003/07/18 23:33:53 kevin Exp $
 
 
 (defpackage #:puri-tests (:use #:puri #:cl #:util.test))
@@ -28,7 +28,7 @@
 
 (unintern-uri t)
 
-(defparameter *tests*
+(defmacro gen-test-forms ()
   (let ((res '())
 	(base-uri "http://a/b/c/d;p?q"))
 
@@ -405,13 +405,12 @@
        :condition-type 'parse-error)
      res)
     
-    `(progn ,@(nreverse res)))
-  )
+    `(progn ,@(nreverse res))))
 
 (defun do-tests ()
-  (eval
-   `(with-tests (:name "puri")
-     ,*tests*))
+  (let ((util.test:*break-on-test-failures* t))
+    (with-tests (:name "puri")
+      (gen-test-forms)))
   t)
 
 
