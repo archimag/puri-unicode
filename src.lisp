@@ -22,7 +22,7 @@
 ;; Original version from ACL 6.1:
 ;; uri.cl,v 2.3.6.4.2.1 2001/08/09 17:42:39 layer
 ;;
-;; $Id: src.lisp,v 1.4 2003/07/19 03:12:18 kevin Exp $
+;; $Id: src.lisp,v 1.5 2003/07/19 13:34:12 kevin Exp $
 
 (defpackage #:puri
   (:use #:cl)
@@ -62,11 +62,24 @@
 (eval-when (compile) (declaim (optimize (speed 3))))
 
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defvar if*-keyword-list '("then" "thenret" "else" "elseif")))
 
 #-(or allegro lispworks)
 (define-condition parse-error (error)  ())
+
+(defun shrink-vector (str size)
+  #+allegro
+  (excl::.primcall 'sys::shrink-svector str size)
+  #+sbcl
+  (sb-kernel:shrink-vector str size)
+  #+cmu
+  (lisp::shrink-vector str size)
+  #+lispworks
+  (system::shrink-vector$vector str size)
+  #+(or allegro cmu sbcl lispworks)
+  str
+  #-(or allegro cmu sbcl lispworks)
+  (subseq new-string 0 (incf new-i)))
+
 
 (defun .parse-error (fmt &rest args)
   #+allegro (apply #'excl::.parse-error fmt args)
@@ -82,7 +95,12 @@
 	 "#u takes a string or list argument: ~s" args))
 
 #-allegro (defvar *current-case-mode* :case-insensitive-upper)
+#+allegro (eval-when (compile load eval)
+	    (import '(excl:*current-case-mode*
+		      excl:delimited-string-to-list
+		      excl:if*)))
 
+#-allegro
 (defun position-char (char string start max)
   (declare (optimize (speed 3) (safety 0) (space 0))
 	   (fixnum start max) (simple-string string))
@@ -91,10 +109,7 @@
     (declare (fixnum i))
     (when (char= char (schar string i)) (return i))))
 
-#+allegro 
-(defun delimited-string-to-list (string &optional (separator #\space)) 
-  (excl:delimited-string-to-list string))
-
+#-allegro 
 (defun delimited-string-to-list (string &optional (separator #\space) 
 				 skip-terminal)
   (declare (optimize (speed 3) (safety 0) (space 0)
@@ -116,23 +131,27 @@
 	     (type (or null fixnum) end))
     (push (subseq string pos end) output)
     (setq pos (1+ end))))
-  
-(defmacro if* (&rest args)
-   (do ((xx (reverse args) (cdr xx))
-	(state :init)
-	(elseseen nil)
-	(totalcol nil)
+
+#-allegro
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defvar if*-keyword-list '("then" "thenret" "else" "elseif"))
+
+  (defmacro if* (&rest args)
+    (do ((xx (reverse args) (cdr xx))
+	 (state :init)
+	 (elseseen nil)
+	 (totalcol nil)
 	(lookat nil nil)
-	(col nil))
-       ((null xx)
-	(cond ((eq state :compl)
-	       `(cond ,@totalcol))
-	      (t (error "if*: illegal form ~s" args))))
-       (cond ((and (symbolp (car xx))
-		   (member (symbol-name (car xx))
-			   if*-keyword-list
-			   :test #'string-equal))
-	      (setq lookat (symbol-name (car xx)))))
+	 (col nil))
+	((null xx)
+	 (cond ((eq state :compl)
+		`(cond ,@totalcol))
+	       (t (error "if*: illegal form ~s" args))))
+      (cond ((and (symbolp (car xx))
+		  (member (symbol-name (car xx))
+			  if*-keyword-list
+			  :test #'string-equal))
+	     (setq lookat (symbol-name (car xx)))))
 
        (cond ((eq state :init)
 	      (cond (lookat (cond ((string-equal lookat "thenret")
@@ -166,7 +185,7 @@
 	     ((eq state :compl)
 	      (cond ((not (string-equal lookat "elseif"))
 		     (error "if*: missing elseif clause ")))
-	      (setq state :init)))))
+	      (setq state :init))))))
 
 
 (defclass uri ()
@@ -750,14 +769,7 @@ URI ~s contains illegal character ~s at position ~d."
 	(new-i 0 (1+ new-i))
 	ch ch2 chc chc2)
       ((= i max)
-       #+allegro
-       (excl::.primcall 'sys::shrink-svector new-string new-i)
-       #+sbcl
-       (sb-kernel:shrink-vector new-string new-i)
-       #-(or allegro sbcl)
-       (subseq new-string 0 new-i)
-       #+(or allegro sbcl)
-       new-string)
+       (shrink-vector new-string new-i))
     (if* (char= #\% (setq ch (schar string i)))
        then (when (> (+ i 3) max)
 	      (.parse-error
@@ -877,14 +889,7 @@ URI ~s contains illegal character ~s at position ~d."
 	(new-i -1)
 	c ci)
       ((= i max)
-       #+allegro
-       (excl::.primcall 'sys::shrink-svector new-string (incf new-i))
-       #+sbcl
-       (sb-kernel:shrink-vector new-string (incf new-i))
-       #-(or allegro sbcl)
-       (subseq new-string 0 (incf new-i))
-       #+(or allegro sbcl)
-       new-string)
+       (shrink-vector new-string (incf new-i)))
     (setq ci (char-int (setq c (schar string i))))
     (if* (or (null reserved-chars)
 	     (> ci 127)

@@ -1,3 +1,9 @@
+cl-puri (1.2.5-1) unstable; urgency=low
+
+  * add shrink vector, AllegroCL fixes
+
+ -- Kevin M. Rosenberg <kmr@debian.org>  Sat, 19 Jul 2003 07:33:57 -0600
+
 cl-puri (1.2.4-1) unstable; urgency=low
 
   * Fix typo for non-Allegro / non-SBCL platforms
