@@ -22,7 +22,7 @@
 ;; Original version from ACL 6.1:
 ;; uri.cl,v 2.3.6.4.2.1 2001/08/09 17:42:39 layer
 ;;
-;; $Id: src.lisp,v 1.5 2003/07/19 13:34:12 kevin Exp $
+;; $Id: src.lisp,v 1.6 2003/07/19 18:21:43 kevin Exp $
 
 (defpackage #:puri
   (:use #:cl)
@@ -78,26 +78,24 @@
   #+(or allegro cmu sbcl lispworks)
   str
   #-(or allegro cmu sbcl lispworks)
-  (subseq new-string 0 (incf new-i)))
+  (subseq str 0 size))
 
 
+#-allegro
 (defun .parse-error (fmt &rest args)
-  #+allegro (apply #'excl::.parse-error fmt args)
-  #-allegro (error 
-	     (make-condition 'parse-error :format-control fmt
-			     :format-arguments args)))
+  (error (make-condition 'parse-error :format-control fmt
+			 :format-arguments args)))
 
+#-allegro
 (defun internal-reader-error (stream fmt &rest args)
-  #+allegro
-  (apply #'excl::internal-reader-error stream fmt args)
-  #-allegro
-  (apply #'format stream
-	 "#u takes a string or list argument: ~s" args))
+  (apply #'format stream fmt args))
 
 #-allegro (defvar *current-case-mode* :case-insensitive-upper)
 #+allegro (eval-when (compile load eval)
 	    (import '(excl:*current-case-mode*
 		      excl:delimited-string-to-list
+		      excl::.parse-error
+		      excl::internal-reader-error
 		      excl:if*)))
 
 #-allegro
@@ -1283,6 +1281,7 @@ Executes the forms once for each uri with var bound to the current uri"
 	 (internal-reader-error
 	  stream
 	  "#u takes a string or list argument: ~s" arg)))))
+
 
 #+allegro
 excl::
