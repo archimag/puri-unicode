@@ -20,7 +20,7 @@
   (oos 'test-op 'puri-tests))
 
 (defsystem puri-tests
-    :depends-on (:puri :tester) 
+    :depends-on (:puri :ptester) 
     :components
     ((:file "tests")))
 

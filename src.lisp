@@ -22,7 +22,7 @@
 ;; Original version from ACL 6.1:
 ;; uri.cl,v 2.3.6.4.2.1 2001/08/09 17:42:39 layer
 ;;
-;; $Id: src.lisp,v 1.8 2003/07/20 16:25:21 kevin Exp $
+;; $Id: src.lisp,v 1.9 2003/07/20 18:51:48 kevin Exp $
 
 (defpackage #:puri
   (:use #:cl)
@@ -55,13 +55,14 @@
    #:uri=
    #:intern-uri
    #:unintern-uri
-   #:do-all-uris))
+   #:do-all-uris
+
+   #:uri-parse-error ;; Added by KMR
+   ))
 
 (in-package #:puri)
 
-(eval-when (:compile-toplevel)
-  (declaim (optimize (speed 3))))
-
+(eval-when (:compile-toplevel) (declaim (optimize (speed 3))))
 
 
 #-allegro
@@ -97,19 +98,18 @@
   (subseq str 0 size))
 
 
-#-(or allegro lispworks)
-(define-condition parse-error (error)
-  ((fmt-control :initarg :fmt-control
-		:reader fmt-control)
-   (fmt-args :initarg :fmt-args
-		  :reader fmt-args))
-  (:report (lambda (c stream)
-	     (format stream "Parse error: ")
-	     (apply #'format stream (fmt-control c) (fmt-args c)))))
+;; KMR: Added new condition to handle cross-implementation variances
+;; in the parse-error condition many implementations define
 
-#-allegro
+(define-condition uri-parse-error (parse-error)
+  ((fmt-control :initarg :fmt-control :accessor fmt-control)
+   (fmt-arguments :initarg :fmt-arguments :accessor fmt-arguments ))
+  (:report (lambda (c stream)
+	     (format stream "Parse error:")
+	     (apply #'format stream (fmt-control c) (fmt-arguments c)))))
+
 (defun .parse-error (fmt &rest args)
-  (error (make-condition 'parse-error :fmt-control fmt :fmt-args args)))
+  (error 'uri-parse-error :fmt-control fmt :fmt-arguments args))
 
 #-allegro
 (defun internal-reader-error (stream fmt &rest args)
@@ -119,7 +119,6 @@
 #+allegro (eval-when (:compile-toplevel :load-toplevel :execute)
 	    (import '(excl:*current-case-mode*
 		      excl:delimited-string-to-list
-		      excl::.parse-error
 		      excl::parse-body
 		      excl::internal-reader-error
 		      excl:if*)))

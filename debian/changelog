@@ -1,8 +1,9 @@
 cl-puri (1.2.6-1) unstable; urgency=low
 
-  * Fix .parse-error
+  * Change parse-error condition to uri-parse-error for
+    cross-implementation compatibility.
 
- --
+ -- Kevin M. Rosenberg <kmr@debian.org>  Sun, 20 Jul 2003 11:52:03 -0600
 
 cl-puri (1.2.5-1) unstable; urgency=low
 
