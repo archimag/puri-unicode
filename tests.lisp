@@ -20,7 +20,7 @@
 ;; Original version from ACL 6.1:
 ;; t-uri.cl,v 1.3.6.3.2.1 2001/08/09 17:42:43 layer
 ;;
-;; $Id: tests.lisp,v 1.1 2003/07/18 20:34:23 kevin Exp $
+;; $Id: tests.lisp,v 1.2 2003/07/18 23:06:11 kevin Exp $
 
 
 (defpackage #:puri-tests (:use #:puri #:cl #:util.test))
@@ -368,39 +368,39 @@
 	  res)
     
     (push
-     '(let ((net.uri::*strict-parse* nil))
+     '(let ((puri::*strict-parse* nil))
        (util.test:test-no-error
-	(net.uri:parse-uri
+	(puri:parse-uri
 	 "http://foo.com/bar?a=zip|zop")))
      res)
     (push
      '(util.test:test-error
-       (net.uri:parse-uri "http://foo.com/bar?a=zip|zop")
+       (puri:parse-uri "http://foo.com/bar?a=zip|zop")
        :condition-type 'parse-error)
      res)
     
     (push
-     '(let ((net.uri::*strict-parse* nil))
+     '(let ((puri::*strict-parse* nil))
        (util.test:test-no-error
-	(net.uri:parse-uri
+	(puri:parse-uri
 	 "http://arc3.msn.com/ADSAdClient31.dll?GetAd?PG=NBCSBU?SC=D2?AN=1.0586041")))
      res)
     (push
      '(util.test:test-error
-       (net.uri:parse-uri
+       (puri:parse-uri
 	"http://arc3.msn.com/ADSAdClient31.dll?GetAd?PG=NBCSBU?SC=D2?AN=1.0586041")
        :condition-type 'parse-error)
      res)
     
     (push
-     '(let ((net.uri::*strict-parse* nil))
+     '(let ((puri::*strict-parse* nil))
        (util.test:test-no-error
-	(net.uri:parse-uri
+	(puri:parse-uri
 	 "http://scbc.booksonline.com/cgi-bin/ndCGI.exe/Develop/pagClubHome.hrfTIOLI_onWebEvent(hrfTIOLI)?selGetClubOffer.TB_OFFER_ID_OFFER=344879%2e0&selGetClubOffer.TB_OFFER_ID_ITEM=34487%2e0&selGetClubOffer.TB_OFFER_ID_OFFER=344879%2e0&^CSpCommand.currRowNumber=5&hrfTIOLI=The+Visual+Basic+6+Programmer%27s+Toolkit&SPIDERSESSION=%3f%3f%3f%3f%3f%5f%3f%3f%3f%40%5b%3f%3f%3f%3fBOs%5cH%3f%3f%3f%3f%3f%3f%3f%3f%3fMMpXO%5f%40JG%7d%40%5c%5f%3f%3f%3fECK%5dt%3fLDT%3fTBD%3fDDTxPEToBS%40%5f%5dBDgXVoKBSDs%7cDT%3fK%3fd%3fTIb%7ceHbkeMfh%60LRpO%5cact%5eUC%7bMu%5fyWUGzLUhP%5ebpdWRka%5dFO%3f%5dBopW%3f%40HMrxbMRd%60LOpuMVga%3fv%3fTS%3fpODT%40O&%5euniqueValue=977933764843")))
      res)
     (push
      '(util.test:test-error
-       (net.uri:parse-uri
+       (puri:parse-uri
 	"http://scbc.booksonline.com/cgi-bin/ndCGI.exe/Develop/pagClubHome.hrfTIOLI_onWebEvent(hrfTIOLI)?selGetClubOffer.TB_OFFER_ID_OFFER=344879%2e0&selGetClubOffer.TB_OFFER_ID_ITEM=34487%2e0&selGetClubOffer.TB_OFFER_ID_OFFER=344879%2e0&^CSpCommand.currRowNumber=5&hrfTIOLI=The+Visual+Basic+6+Programmer%27s+Toolkit&SPIDERSESSION=%3f%3f%3f%3f%3f%5f%3f%3f%3f%40%5b%3f%3f%3f%3fBOs%5cH%3f%3f%3f%3f%3f%3f%3f%3f%3fMMpXO%5f%40JG%7d%40%5c%5f%3f%3f%3fECK%5dt%3fLDT%3fTBD%3fDDTxPEToBS%40%5f%5dBDgXVoKBSDs%7cDT%3fK%3fd%3fTIb%7ceHbkeMfh%60LRpO%5cact%5eUC%7bMu%5fyWUGzLUhP%5ebpdWRka%5dFO%3f%5dBopW%3f%40HMrxbMRd%60LOpuMVga%3fv%3fTS%3fpODT%40O&%5euniqueValue=977933764843")
        :condition-type 'parse-error)
      res)
