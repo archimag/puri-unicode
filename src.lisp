@@ -22,7 +22,7 @@
 ;; Original version from ACL 6.1:
 ;; uri.cl,v 2.3.6.4.2.1 2001/08/09 17:42:39 layer
 ;;
-;; $Id: src.lisp,v 1.6 2003/07/19 18:21:43 kevin Exp $
+;; $Id: src.lisp,v 1.7 2003/07/19 20:32:48 kevin Exp $
 
 (defpackage #:puri
   (:use #:cl)
@@ -59,13 +59,31 @@
 
 (in-package #:puri)
 
-(eval-when (compile) (declaim (optimize (speed 3))))
-
+(eval-when (:compile-toplevel)
+  (declaim (optimize (speed 3))))
 
 
 #-(or allegro lispworks)
 (define-condition parse-error (error)  ())
 
+#-allegro
+(defun parse-body (forms &optional env)
+  "Parses a body, returns (VALUES docstring declarations forms)"
+  (declare (ignore env))
+  ;; fixme -- need to add parsing of multiple declarations
+  (let (docstring declarations)
+    (when (stringp (car forms))
+      (setq docstring (car forms))
+      (setq forms (cdr forms)))
+    (when (and (listp (car forms))
+	       (symbolp (caar forms))
+	       (string-equal (symbol-name '#:declare)
+			     (symbol-name (caar forms))))
+      (setq declarations (car forms))
+      (setq forms (cdr forms)))
+    (values docstring declarations forms)))
+
+  
 (defun shrink-vector (str size)
   #+allegro
   (excl::.primcall 'sys::shrink-svector str size)
@@ -91,10 +109,11 @@
   (apply #'format stream fmt args))
 
 #-allegro (defvar *current-case-mode* :case-insensitive-upper)
-#+allegro (eval-when (compile load eval)
+#+allegro (eval-when (:compile-toplevel :load-toplevel :execute)
 	    (import '(excl:*current-case-mode*
 		      excl:delimited-string-to-list
 		      excl::.parse-error
+		      excl::parse-body
 		      excl::internal-reader-error
 		      excl:if*)))
 
@@ -221,7 +240,7 @@
   ((nid :initarg :nid :initform nil :accessor urn-nid)
    (nss :initarg :nss :initform nil :accessor urn-nss)))
 
-(eval-when (compile eval)
+(eval-when (:compile-toplevel :execute)
   (defmacro clear-caching-on-slot-change (name)
     `(defmethod (setf ,name) :around (new-value (self uri))
        (declare (ignore new-value))
@@ -372,7 +391,7 @@
 (defparameter *reserved-fragment-characters*
     (reserved-char-vector (remove #\# *excluded-characters*)))
 
-(eval-when (compile eval)
+(eval-when (:compile-toplevel :execute)
 (defun gen-char-range-list (start end)
   (do* ((res '())
 	(endcode (1+ (char-int end)))
@@ -816,13 +835,9 @@ URI ~s contains illegal character ~s at position ~d."
 	     host *reserved-authority-characters* escape))
 	  (when port ":")
 	  (when port
-;;;; too slow until ACL 6.0:
-;;;	    (format nil "~d" port)
-;;;	    (princ-to-string port)
-	    #-allegro (princ-to-string port)
-	    #+allegro
-	    (with-output-to-string (s)
-	      (excl::maybe-print-fast s port))
+	    #-allegro (format nil "~D" port)
+	    #+allegro (with-output-to-string (s)
+			(excl::maybe-print-fast s port))
 	    )
 	  (when path
 	    (encode-escaped-encoding path
@@ -1183,6 +1198,7 @@ URI ~s contains illegal character ~s at position ~d."
 ;; bootstrapping (uri= changed from function to method):
 (when (fboundp 'uri=) (fmakunbound 'uri=))
 
+(defgeneric uri= (uri1 uri2))
 (defmethod uri= ((uri1 uri) (uri2 uri))
   (when (not (eq (uri-scheme uri1) (uri-scheme uri2)))
     (return-from uri= nil))
@@ -1259,8 +1275,7 @@ Executes the forms once for each uri with var bound to the current uri"
   (let ((f (gensym))
 	(g-ignore (gensym))
 	(g-uri-space (gensym))
-	(body #+allegro (third (excl::parse-body forms env))
-	      #-allegro forms))
+	(body (third (parse-body forms env))))
     `(let ((,g-uri-space (or ,uri-space *uris*)))
        (prog nil
 	 (flet ((,f (,var &optional ,g-ignore)
@@ -1300,7 +1315,17 @@ excl::
 ;; timings
 ;; (don't run under emacs with M-x fi:common-lisp)
 
-#+ignore
+#+allegro
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (import 'excl::gc))
+
+#-allegro
+(defun gc (&rest options)
+  (declare (ignore options))
+  #+sbcl (sb-ext::gc)
+  #+cmu (ext::gc)
+  )
+
 (defun time-uri-module ()
   (declare (optimize (speed 3) (safety 0) (debug 0)))
   (let ((uri "http://www.franz.com/a/b;x;y;z/c/foo?bar=baz&xxx#foo")
