@@ -22,7 +22,7 @@
 ;; Original version from ACL 6.1:
 ;; uri.cl,v 2.3.6.4.2.1 2001/08/09 17:42:39 layer
 ;;
-;; $Id: src.lisp,v 1.9 2003/07/20 18:51:48 kevin Exp $
+;; $Id: src.lisp,v 1.10 2003/07/20 21:03:54 kevin Exp $
 
 (defpackage #:puri
   (:use #:cl)
@@ -92,10 +92,11 @@
   (lisp::shrink-vector str size)
   #+lispworks
   (system::shrink-vector$vector str size)
-  #+(or allegro cmu sbcl lispworks)
-  str
-  #-(or allegro cmu sbcl lispworks)
-  (subseq str 0 size))
+  #+scl
+  (common-lisp::shrink-vector str size)
+  #-(or allegro cmu lispworks sbcl scl)
+  (setq str (subseq str 0 size))
+  str)
 
 
 ;; KMR: Added new condition to handle cross-implementation variances
