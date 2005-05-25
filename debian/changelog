@@ -1,3 +1,9 @@
+cl-puri (1.3.1.2-2) unstable; urgency=low
+
+  * Reupload with correct changelog date
+
+ -- Kevin M. Rosenberg <kmr@debian.org>  Wed, 25 May 2005 10:28:34 -0600
+
 cl-puri (1.3.1.2-1) unstable; urgency=low
 
   * Fix broken html documentation (closes:310639)
