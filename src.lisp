@@ -900,6 +900,8 @@ URI ~s contains illegal character ~s at position ~d."
     (vector #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\a #\b #\c #\d #\e #\f))
 
 (defun encode-escaped-encoding (string reserved-chars escape)
+  (unless (typep string 'simple-string)
+    (setq string (coerce string 'simple-string)))
   (when (null escape) (return-from encode-escaped-encoding string))
   ;; Make a string as big as it possibly needs to be (3 times the original
   ;; size), and truncate it at the end.
