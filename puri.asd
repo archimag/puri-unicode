@@ -28,3 +28,6 @@
   (or (funcall (intern (symbol-name '#:do-tests)
 		       (find-package :puri-tests)))
       (error "test-op failed")))
+
+(defmethod operation-done-p ((o test-op) (c (eql (find-system 'puri-tests))))
+  (values nil))

@@ -40,7 +40,10 @@
 		 ("g/" "http://a/b/c/g/" ,base-uri)
 		 ("/g" "http://a/g" ,base-uri) 
 		 ("//g" "http://g" ,base-uri) 
-		 ("?y" "http://a/b/c/?y" ,base-uri) 
+                 ;; Following was changed from appendix C of RFC 2396
+                 ;; http://www.apache.org/~fielding/uri/rev-2002/issues.html#003-relative-query
+		 #-ignore ("?y" "http://a/b/c/d;p?y" ,base-uri) 
+		 #+ignore ("?y" "http://a/b/c/?y" ,base-uri) 
 		 ("g?y" "http://a/b/c/g?y" ,base-uri)
 		 ("#s" "http://a/b/c/d;p?q#s" ,base-uri) 
 		 ("g#s" "http://a/b/c/g#s" ,base-uri) 
@@ -180,6 +183,9 @@
     (push `(test "%20" (format nil "~a" (parse-uri "%20"))
 			   :test 'string=)
 	  res)
+     (push `(test "%FF" (format nil "~a" (parse-uri "%FF"))
+                          :test 'string=)
+         res) ;Value 255 outside reserved-chars vector (128 bits)
     (push `(test "&" (format nil "~a" (parse-uri "%26"))
 			   :test 'string=)
 	  res)

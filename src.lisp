@@ -88,7 +88,7 @@
   #+allegro
   (excl::.primcall 'sys::shrink-svector str size)
   #+sbcl
-  (sb-kernel:shrink-vector str size)
+  (setq str (sb-kernel:shrink-vector str size))
   #+cmu
   (lisp::shrink-vector str size)
   #+lispworks
@@ -126,17 +126,17 @@
 		      excl:if*)))
 
 #-allegro
-(defun position-char (char string start max)
+(defmethod position-char (char (string string) start max)
   (declare (optimize (speed 3) (safety 0) (space 0))
-	   (fixnum start max) (simple-string string))
+	   (fixnum start max) (string string))
   (do* ((i start (1+ i)))
        ((= i max) nil)
     (declare (fixnum i))
-    (when (char= char (schar string i)) (return i))))
+    (when (char= char (char string i)) (return i))))
 
 #-allegro 
 (defun delimited-string-to-list (string &optional (separator #\space) 
-				 skip-terminal)
+                                        skip-terminal)
   (declare (optimize (speed 3) (safety 0) (space 0)
 		     (compilation-speed 0))
 	   (type string string)
@@ -149,9 +149,9 @@
        ((null end)
 	(if (< pos len)
 	    (push (subseq string pos) output)
-	    (when (or (not skip-terminal) (zerop len))
-	      (push "" output)))
-	(nreverse output))
+          (when (and (plusp len) (not skip-terminal))
+            (push "" output)))
+        (nreverse output))
     (declare (type fixnum pos len)
 	     (type (or null fixnum) end))
     (push (subseq string pos end) output)
@@ -549,7 +549,7 @@
 		       (setq res
 			 (loop
 			   (when (>= start end) (return nil))
-			   (setq c (schar string start))
+			   (setq c (char string start))
 			   (let ((ci (char-int c)))
 			     (if* legal-chars
 				then (if* (and (eq :colon kind) (eq c #\:))
@@ -726,7 +726,7 @@ URI ~s contains illegal character ~s at position ~d."
 	   (return
 	     (values
 	      scheme host port
-	      (apply #'concatenate 'simple-string (nreverse path-components))
+	      (apply #'concatenate 'string (nreverse path-components))
 	      query fragment)))
 	  ;; URN parsing:
 	  (15 ;; seen urn:, read nid now
@@ -755,7 +755,7 @@ URI ~s contains illegal character ~s at position ~d."
 	(max (the fixnum (length string))))
       ((= i max) nil)
     (declare (fixnum i max))
-    (when (char= #\% (schar string i))
+    (when (char= #\% (char string i))
       (return t))))
 
 (defun parse-path (path-string escape)
@@ -769,19 +769,23 @@ URI ~s contains illegal character ~s at position ~d."
 	(pl (cdr path-list) (cdr pl))
 	segments)
       ((null pl) path-list)
-    (if* (cdr (setq segments (delimited-string-to-list (car pl) #\;)))
+    
+    (if* (cdr (setq segments
+		(if* (string= "" (car pl))
+		   then '("")
+		   else (delimited-string-to-list (car pl) #\;))))
        then ;; there is a param
-;;;	    (setf (car pl) segments)
 	    (setf (car pl)
 	      (mapcar #'(lambda (s)
-			  (decode-escaped-encoding
-			   s escape *reserved-path-characters2*))
-	       segments))
+			  (decode-escaped-encoding s escape
+						   ;; decode all %xx:
+						   nil))
+		      segments))
        else ;; no param
-;;;	    (setf (car pl) (car segments))
 	    (setf (car pl)
-	      (decode-escaped-encoding
-	       (car segments) escape *reserved-path-characters2*)))))
+	      (decode-escaped-encoding (car segments) escape
+				       ;; decode all %xx:
+				       nil)))))
 
 (defun decode-escaped-encoding (string escape
 				&optional (reserved-chars
@@ -795,26 +799,27 @@ URI ~s contains illegal character ~s at position ~d."
 	ch ch2 chc chc2)
       ((= i max)
        (shrink-vector new-string new-i))
-    (if* (char= #\% (setq ch (schar string i)))
+    (if* (char= #\% (setq ch (char string i)))
        then (when (> (+ i 3) max)
 	      (.parse-error
 	       "Unsyntactic escaped encoding in ~s." string))
-	    (setq ch (schar string (incf i)))
-	    (setq ch2 (schar string (incf i)))
+	    (setq ch (char string (incf i)))
+	    (setq ch2 (char string (incf i)))
 	    (when (not (and (setq chc (digit-char-p ch 16))
 			    (setq chc2 (digit-char-p ch2 16))))
 	      (.parse-error
 	       "Non-hexidecimal digits after %: %c%c." ch ch2))
 	    (let ((ci (+ (* 16 chc) chc2)))
 	      (if* (or (null reserved-chars)
-		       (= 0 (sbit reserved-chars ci)))
+                       (and (< ci (length reserved-chars))
+                            (= 0 (sbit reserved-chars ci))))
 		 then ;; ok as is
-		      (setf (schar new-string new-i)
+		      (setf (char new-string new-i)
 			(code-char ci))
-		 else (setf (schar new-string new-i) #\%)
-		      (setf (schar new-string (incf new-i)) ch)
-		      (setf (schar new-string (incf new-i)) ch2)))
-       else (setf (schar new-string new-i) ch))))
+		 else (setf (char new-string new-i) #\%)
+		      (setf (char new-string (incf new-i)) ch)
+		      (setf (char new-string (incf new-i)) ch2)))
+       else (setf (char new-string new-i) ch))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Printing
@@ -830,7 +835,7 @@ URI ~s contains illegal character ~s at position ~d."
 	    (path (uri-path uri))
 	    (query (uri-query uri))
 	    (fragment (uri-fragment uri)))
-	(concatenate 'simple-string
+	(concatenate 'string
 	  (when scheme
 	    (encode-escaped-encoding
 	     (string-downcase ;; for upper case lisps
@@ -866,7 +871,7 @@ URI ~s contains illegal character ~s at position ~d."
 	(pl (cdr path-list) (cdr pl))
 	(pe (car pl) (car pl)))
       ((null pl)
-       (when res (apply #'concatenate 'simple-string (nreverse res))))
+       (when res (apply #'concatenate 'string (nreverse res))))
     (when (or (null first)
 	      (prog1 (eq :absolute first)
 		(setq first nil)))
@@ -891,7 +896,7 @@ URI ~s contains illegal character ~s at position ~d."
     (setf (uri-string urn)
       (let ((nid (urn-nid urn))
 	    (nss (urn-nss urn)))
-	(concatenate 'simple-string "urn:" nid ":" nss))))
+	(concatenate 'string "urn:" nid ":" nss))))
   (if* stream
      then (format stream "~a" (uri-string urn))
      else (uri-string urn)))
@@ -900,8 +905,6 @@ URI ~s contains illegal character ~s at position ~d."
     (vector #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\a #\b #\c #\d #\e #\f))
 
 (defun encode-escaped-encoding (string reserved-chars escape)
-  (unless (typep string 'simple-string)
-    (setq string (coerce string 'simple-string)))
   (when (null escape) (return-from encode-escaped-encoding string))
   ;; Make a string as big as it possibly needs to be (3 times the original
   ;; size), and truncate it at the end.
@@ -913,18 +916,18 @@ URI ~s contains illegal character ~s at position ~d."
 	c ci)
       ((= i max)
        (shrink-vector new-string (incf new-i)))
-    (setq ci (char-int (setq c (schar string i))))
+    (setq ci (char-int (setq c (char string i))))
     (if* (or (null reserved-chars)
 	     (> ci 127)
 	     (= 0 (sbit reserved-chars ci)))
        then ;; ok as is
 	    (incf new-i)
-	    (setf (schar new-string new-i) c)
+	    (setf (char new-string new-i) c)
        else ;; need to escape it
 	    (multiple-value-bind (q r) (truncate ci 16)
-	      (setf (schar new-string (incf new-i)) #\%)
-	      (setf (schar new-string (incf new-i)) (elt *escaped-encoding* q))
-	      (setf (schar new-string (incf new-i))
+	      (setf (char new-string (incf new-i)) #\%)
+	      (setf (char new-string (incf new-i)) (elt *escaped-encoding* q))
+	      (setf (char new-string (incf new-i))
 		(elt *escaped-encoding* r))))))
 
 (defmethod print-object ((uri uri) stream)
@@ -949,12 +952,10 @@ URI ~s contains illegal character ~s at position ~d."
 (defmethod merge-uris ((uri string) (base uri) &optional place)
   (merge-uris (parse-uri uri) base place))
 
+
 (defmethod merge-uris ((uri uri) (base uri) &optional place)
-  ;; The following is from
-  ;; http://info.internet.isi.edu/in-notes/rfc/files/rfc2396.txt
-  ;; and is algorithm we use to merge URIs.
-  ;;
-  ;; For more information, see section 5.2 of the RFC.
+  ;; See ../doc/rfc2396.txt for info on the algorithm we use to merge
+  ;; URIs.
   ;;
   (tagbody
 ;;;; step 2
@@ -970,7 +971,7 @@ URI ~s contains illegal character ~s at position ~d."
 	  (when (uri-fragment uri)
 	    (setf (uri-fragment new) (uri-fragment uri)))
 	  new)))
-
+    
     (setq uri (copy-uri uri :place place))
 
 ;;;; step 3
@@ -985,6 +986,18 @@ URI ~s contains illegal character ~s at position ~d."
     
 ;;;; step 5
     (let ((p (uri-parsed-path uri)))
+      
+      ;; bug13133:
+      ;; The following form causes our implementation to be at odds with
+      ;; RFC 2396, however this is apparently what was intended by the
+      ;; authors of the RFC.  Specifically, (merge-uris "?y" "/foo")
+      ;; should return #<uri /foo?y> instead of #<uri ?y>, according to
+      ;; this:
+;;; http://www.apache.org/~fielding/uri/rev-2002/issues.html#003-relative-query
+      (when (null p)
+	(setf (uri-path uri) (uri-path base))
+	(go :done))
+      
       (when (and p (eq :absolute (car p)))
 	(when (equal '(:absolute "") p)
 	  ;; Canonicalize the way parsing does:
@@ -1245,8 +1258,8 @@ URI ~s contains illegal character ~s at position ~d."
 	(state :char)
 	c1 c2)
       ((= i len) t)
-    (setq c1 (schar nss1 i))
-    (setq c2 (schar nss2 i))
+    (setq c1 (char nss1 i))
+    (setq c2 (char nss2 i))
     (ecase state
       (:char
        (if* (and (char= #\% c1) (char= #\% c2))

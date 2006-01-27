@@ -1,3 +1,10 @@
+cl-puri (1.4-1) unstable; urgency=low
+
+  * New upstream: no longer depend on simple strings; fix bugs to correspond
+  to Franz delimited-string-to-list and parse-uri
+
+ -- Kevin M. Rosenberg <kmr@debian.org>  Thu, 26 Jan 2006 15:54:30 -0700
+
 cl-puri (1.3.1.3-1) unstable; urgency=low
 
   * New upstream
