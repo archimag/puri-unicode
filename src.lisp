@@ -1,26 +1,26 @@
 ;; -*- mode: common-lisp; package: puri -*-
-;; Support for URIs in Allegro.
+;; Support for URIs
 ;; For general URI information see RFC2396.
 ;;
-;; copyright (c) 1999-2001 Franz Inc, Berkeley, CA - All rights reserved.
-;; copyright (c) 2003 Kevin Rosenberg (porting changes)
+;; copyright (c) 1999-2002 Franz Inc, Berkeley, CA  - All rights reserved.
+;; copyright (c) 2002-2005 Franz Inc, Oakland, CA - All rights reserved.
+;; copyright (c) 2003-2006 Kevin Rosenberg (porting changes)
 ;;
-;; The software, data and information contained herein are proprietary
-;; to, and comprise valuable trade secrets of, Franz, Inc.  They are
-;; given in confidence by Franz, Inc. pursuant to a written license
-;; agreement, and may be stored and used only in accordance with the terms
-;; of such license.
+;; This code is free software; you can redistribute it and/or
+;; modify it under the terms of the version 2.1 of
+;; the GNU Lesser General Public License as published by 
+;; the Free Software Foundation, as clarified by the
+;; preamble found here:
+;;     http://opensource.franz.com/preamble.html
 ;;
-;; Restricted Rights Legend
-;; ------------------------
-;; Use, duplication, and disclosure of the software, data and information
-;; contained herein by any agency, department or entity of the U.S.
-;; Government are subject to restrictions of Restricted Rights for
-;; Commercial Software developed at private expense as specified in
-;; DOD FAR Supplement 52.227-7013 (c) (1) (ii), as applicable.
-;;
-;; Original version from ACL 6.1:
+;; Versions ported from Franz's opensource release
 ;; uri.cl,v 2.3.6.4.2.1 2001/08/09 17:42:39 layer
+;; uri.cl,v 2.9.84.1 2005/08/11 18:38:52 layer
+
+;; This code is distributed in the hope that it will be useful,
+;; but without any warranty; without even the implied warranty of
+;; merchantability or fitness for a particular purpose.  See the GNU
+;; Lesser General Public License for more details.
 ;;
 ;; $Id$
 
@@ -383,19 +383,7 @@
 ;;;;The rfc says this should be here, but it doesn't make sense.
 	       ;; #\=
 	       #\/ #\?))))
-(defparameter *reserved-path-characters2*
-    ;; These are the same characters that are in
-    ;; *reserved-path-characters*, minus #\/.  Why?  Because the parsed
-    ;; representation of the path can contain the %2f converted into a /.
-    ;; That's the whole point of having the parsed representation, so that
-    ;; lisp programs can deal with the path element data in the most
-    ;; convenient form.
-    (reserved-char-vector
-     (append *excluded-characters*
-	     '(#\;
-;;;;The rfc says this should be here, but it doesn't make sense.
-	       ;; #\=
-	       #\?))))
+
 (defparameter *reserved-fragment-characters*
     (reserved-char-vector (remove #\# *excluded-characters*)))
 
@@ -656,7 +644,13 @@ URI ~s contains illegal character ~s at position ~d."
 	     (:colon (failure))
 	     (:question (failure))
 	     (:hash (failure))
-	     (:slash (failure))
+	     (:slash
+	      (if* (and (equalp "file" scheme)
+			(null host))
+		 then ;; file:///...
+		      (push "/" path-components)
+		      (setq state 6)
+		 else (failure)))
 	     (:string (setq host tokval)
 		      (setq state 11))
 	     (:end (failure))))
@@ -811,8 +805,8 @@ URI ~s contains illegal character ~s at position ~d."
 	       "Non-hexidecimal digits after %: %c%c." ch ch2))
 	    (let ((ci (+ (* 16 chc) chc2)))
 	      (if* (or (null reserved-chars)
-                       (and (< ci (length reserved-chars))
-                            (= 0 (sbit reserved-chars ci))))
+		       (> ci 127)	; bug11527
+		       (= 0 (sbit reserved-chars ci)))
 		 then ;; ok as is
 		      (setf (char new-string new-i)
 			(code-char ci))
@@ -842,7 +836,7 @@ URI ~s contains illegal character ~s at position ~d."
 	      (symbol-name scheme))
 	     *reserved-characters* escape))
 	  (when scheme ":")
-	  (when host "//")
+	  (when (or host (eq :file scheme)) "//")
 	  (when host
 	    (encode-escaped-encoding
 	     host *reserved-authority-characters* escape))
