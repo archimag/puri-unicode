@@ -1,3 +1,9 @@
+cl-puri (1.5.1-1) unstable; urgency=low
+
+  * New upstream
+
+ -- Kevin M. Rosenberg <kmr@debian.org>  Sat,  2 Dec 2006 08:42:15 -0700
+
 cl-puri (1.5-1) unstable; urgency=low
 
   * Incorporate updates from latest Franz release

@@ -926,12 +926,12 @@ URI ~s contains illegal character ~s at position ~d."
 
 (defmethod print-object ((uri uri) stream)
   (if* *print-escape*
-     then (format stream "#<~a ~a>" 'uri (render-uri uri nil))
+     then (print-unreadable-object (uri stream :type t) (render-uri uri stream))
      else (render-uri uri stream)))
 
 (defmethod print-object ((urn urn) stream)
   (if* *print-escape*
-     then (format stream "#<~a ~a>" 'uri (render-urn urn nil))
+     then (print-unreadable-object (urn stream :type t) (render-urn urn stream))
      else (render-urn urn stream)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
