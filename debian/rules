@@ -1,55 +1,44 @@
 #!/usr/bin/make -f
 
-pkg	:= puri
-debpkg  := cl-puri
+pkg		:= puri
+debpkg  	:= cl-puri
 
 clc-source	:= usr/share/common-lisp/source
 clc-systems	:= usr/share/common-lisp/systems
-clc-puri	:= $(clc-source)/$(pkg)
-doc-dir		:= usr/share/doc/$(debpkg)
+clc-files	:= $(clc-source)/$(pkg)
 
 
-configure: configure-stamp
-configure-stamp:
-	dh_testdir
-	touch configure-stamp
-
-build: build-stamp
-
-build-stamp: configure-stamp 
-	dh_testdir
-	touch build-stamp
+build:
 
 clean:
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp configure-stamp
-	rm -f debian/cl-puri.postinst.* debian/cl-puri.prerm.*
 	dh_clean
 
 install: build
 	dh_testdir
 	dh_testroot
 	dh_prep
-	dh_installdirs $(clc-systems) $(clc-puri)
-	dh_install *.asd $(shell echo *.lisp) $(clc-puri)
-	dh_link $(clc-puri)/puri.asd $(clc-systems)/puri.asd
+	dh_installdirs
+	dh_install $(pkg).asd $(clc-files)
+	dh_install *.lisp $(clc-files)
 
-binary-indep: build install
-	dh_testdir -i
-	dh_testroot -i
-	dh_installdocs -i README uri.html
-	dh_installchangelogs -i
-	dh_strip -i
-	dh_compress -i
-	dh_fixperms -i
-	dh_installdeb -i
-	dh_gencontrol -i
-	dh_md5sums -i
-	dh_builddeb -i
+binary-indep: install
+	dh_testdir
+	dh_testroot
+	dh_installdocs README uri.html
+	dh_installchangelogs
+	dh_lisp
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
 
-binary-arch: build install
+binary-arch:
 
-binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install configure
+binary: binary-indep
 
+
+.PHONY: build clean binary-indep binary-arch binary install

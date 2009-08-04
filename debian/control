@@ -2,14 +2,16 @@ Source: cl-puri
 Section: lisp
 Priority: optional
 Maintainer: Kevin M. Rosenberg <kmr@debian.org>
+Build-Depends-Indep: dh-lisp
 Build-Depends: debhelper (>= 7.0.0)
 Standards-Version: 3.8.2.0
 Homepage: http://files.b9.com/puri/
 Vcs-Git: git://git.b9.com/puri/
+Vcs-Browser: http://git.b9.com/puri/
 
 Package: cl-puri
 Architecture: all
-Depends: common-lisp-controller (>= 3.47)
+Depends: ${misc:Depends}
 Recommends: cl-ptester
 Description: Common Lisp Portable URI Library
  This is portable Universal Resource Identifier (RFC 2396)
