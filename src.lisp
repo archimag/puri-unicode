@@ -1315,13 +1315,6 @@ Executes the forms once for each uri with var bound to the current uri"
           "#u takes a string or list argument: ~s" arg)))))
 
 
-#+allegro
-excl::
-#+allegro
-(locally (declare (special std-lisp-readtable))
-  (let ((*readtable* std-lisp-readtable))
-    (set-dispatch-macro-character #\# #\u #'puri::sharp-u)))
-#-allegro
 (set-dispatch-macro-character #\# #\u #'puri::sharp-u)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
