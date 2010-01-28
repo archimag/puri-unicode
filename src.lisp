@@ -4,7 +4,7 @@
 ;;
 ;; copyright (c) 1999-2002 Franz Inc, Berkeley, CA  - All rights reserved.
 ;; copyright (c) 2002-2005 Franz Inc, Oakland, CA - All rights reserved.
-;; copyright (c) 2003-2006 Kevin Rosenberg (porting changes)
+;; copyright (c) 2003-2010 Kevin Rosenberg
 ;;
 ;; This code is free software; you can redistribute it and/or
 ;; modify it under the terms of the version 2.1 of
@@ -846,11 +846,10 @@ URI ~s contains illegal character ~s at position ~d."
             #+allegro (with-output-to-string (s)
                         (excl::maybe-print-fast s port))
             )
-          (when path
-            (encode-escaped-encoding path
-                                     nil
-                                     ;;*reserved-path-characters*
-                                     escape))
+          (encode-escaped-encoding (or path "/")
+                                   nil
+                                   ;;*reserved-path-characters*
+                                   escape)
           (when query "?")
           (when query (encode-escaped-encoding query nil escape))
           (when fragment "#")
