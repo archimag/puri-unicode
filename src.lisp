@@ -784,37 +784,82 @@ URI ~s contains illegal character ~s at position ~d."
 (defun decode-escaped-encoding (string escape
                                 &optional (reserved-chars
                                            *reserved-characters*))
-  ;; Return a string with the real characters.
+  ;;Return a string with the real characters.
   (when (null escape) (return-from decode-escaped-encoding string))
-  (do* ((i 0 (1+ i))
-        (max (length string))
-        (new-string (copy-seq string))
-        (new-i 0 (1+ new-i))
-        ch ch2 chc chc2)
-      ((= i max)
-       (shrink-vector new-string new-i))
-    (if* (char= #\% (setq ch (char string i)))
-       then (when (> (+ i 3) max)
-              (.parse-error
-               "Unsyntactic escaped encoding in ~s." string))
-            (setq ch (char string (incf i)))
-            (setq ch2 (char string (incf i)))
-            (when (not (and (setq chc (digit-char-p ch 16))
-                            (setq chc2 (digit-char-p ch2 16))))
-              (.parse-error
-               "Non-hexidecimal digits after %: %c%c." ch ch2))
-            (let ((ci (+ (* 16 chc) chc2)))
-              (if* (or (null reserved-chars)
-                       (> ci 127)       ; bug11527
-                       (= 0 (sbit reserved-chars ci)))
-                 then ;; ok as is
-                      (setf (char new-string new-i)
-                        (code-char ci))
-                 else (setf (char new-string new-i) #\%)
-                      (setf (char new-string (incf new-i)) ch)
-                      (setf (char new-string (incf new-i)) ch2)))
-       else (setf (char new-string new-i) ch))))
 
+  (let ((curpos 0)
+        (maxpos (length string))
+        (strs nil))
+    (flet ((next-ansii-substring ()
+             (let ((pos (or (position #\% string :start curpos)
+                            maxpos)))
+               (when (and (= curpos 0)
+                          (= pos maxpos))
+                 (return-from decode-escaped-encoding string))
+               (when (< curpos pos)
+                 (push (subseq string
+                               curpos
+                               pos)
+                       strs)
+                 (setf curpos pos))))
+           (next-encoded-substring ()
+             (let ((pos (or (loop for i from curpos below maxpos by 3
+                               unless (char= (aref string i)
+                                             #\%)
+                               return i)
+                            maxpos)))
+               (when (< curpos pos)
+                 (let ((octets (handler-case (make-array (/ (- pos curpos)
+                                                            3)
+                                                         :element-type '(unsigned-byte 8)
+                                                         :fill-pointer 0)
+                                 (error () 
+                                   (.parse-error "Unsyntactic escaped encoding in ~s." string)))))
+                   (loop for i from curpos below pos by 3
+                      do (vector-push (handler-case
+                                          (parse-integer string
+                                                         :start (1+ i)
+                                                         :end (+ i 3)
+                                                         :radix 16)
+                                        (error ()
+                                          (.parse-error "Non-hexidecimal digits after %: ~c~c." 
+                                                        (aref string  (1+ i))
+                                                        (aref string (+ 2 i)))))
+                                      octets))
+                   
+                   (let* ((decoded-string (babel:octets-to-string octets
+                                                                  :encoding :utf-8))
+                          (rpos (if reserved-chars
+                                    (position-if #'(lambda (ch)
+                                                     (not (or (> (char-code ch) 127)
+                                                              (= (sbit reserved-chars (char-code ch)) 0))))
+                                                 decoded-string))))
+                     (push (if rpos
+                               (with-output-to-string (out)
+                                 (loop for ch across decoded-string
+                                      for i from curpos by 3
+                                    do (let ((octet (char-code ch)))
+                                         (if (or (null reserved-chars)
+                                                 (> octet 127)
+                                                 (= (sbit reserved-chars octet) 0))
+                                             (write-char ch out)
+                                             (write-string (subseq string i (+ i 3)) out)))))
+                               decoded-string)
+                           strs))))
+                   (setf curpos pos))))
+      (loop
+         while (< curpos maxpos)
+         do (next-ansii-substring)
+         while (< curpos maxpos)
+         do (next-encoded-substring)))
+    (if (cdr strs)
+        (apply #'concatenate
+                   'string
+                   (nreverse strs))
+        (or (car strs)
+            ""))))
+
+                         
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Printing
 
