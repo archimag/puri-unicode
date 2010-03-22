@@ -837,7 +837,7 @@ URI ~s contains illegal character ~s at position ~d."
                      (push (if rpos
                                (with-output-to-string (out)
                                  (loop for ch across decoded-string
-                                      for i from curpos by 3
+                                    for i from curpos by 3
                                     do (let ((octet (char-code ch)))
                                          (if (or (null reserved-chars)
                                                  (> octet 127)
@@ -939,34 +939,17 @@ URI ~s contains illegal character ~s at position ~d."
      then (format stream "~a" (uri-string urn))
      else (uri-string urn)))
 
-(defparameter *escaped-encoding*
-    (vector #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\a #\b #\c #\d #\e #\f))
-
 (defun encode-escaped-encoding (string reserved-chars escape)
   (when (null escape) (return-from encode-escaped-encoding string))
-  ;; Make a string as big as it possibly needs to be (3 times the original
-  ;; size), and truncate it at the end.
-  (do* ((max (length string))
-        (new-max (* 3 max)) ;; worst case new size
-        (new-string (make-string new-max))
-        (i 0 (1+ i))
-        (new-i -1)
-        c ci)
-      ((= i max)
-       (shrink-vector new-string (incf new-i)))
-    (setq ci (char-int (setq c (char string i))))
-    (if* (or (null reserved-chars)
-             (> ci 127)
-             (= 0 (sbit reserved-chars ci)))
-       then ;; ok as is
-            (incf new-i)
-            (setf (char new-string new-i) c)
-       else ;; need to escape it
-            (multiple-value-bind (q r) (truncate ci 16)
-              (setf (char new-string (incf new-i)) #\%)
-              (setf (char new-string (incf new-i)) (elt *escaped-encoding* q))
-              (setf (char new-string (incf new-i))
-                (elt *escaped-encoding* r))))))
+  (with-output-to-string (out)
+    (loop for ch across string
+       do (let ((code (char-code ch)))  
+            (if (and (< code 128)
+                     (or (null reserved-chars)
+                         (= 0 (sbit reserved-chars code))))
+                (write-char ch out)
+                (loop for octet across (babel:string-to-octets (string ch) :encoding :utf-8)
+                   do (format out "%~(~2,'0x~)" octet)))))))
 
 (defmethod print-object ((uri uri) stream)
   (if* *print-escape*
