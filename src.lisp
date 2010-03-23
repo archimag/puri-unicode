@@ -845,7 +845,13 @@ URI ~s contains illegal character ~s at position ~d."
                                                 (= (sbit reserved-chars octet) 0))
                                             (write-char ch out)
                                             (incf i
-                                                  (* (if (> octet 127) 2 1)
+                                                  (* (cond
+                                                       ((< octet #x80) 1)
+                                                       ((< octet #x800) 2)
+                                                       ((< octet #x10000) 3)
+                                                       ((< octet #x200000) 4)
+                                                       ((< octet #x4000000) 5)
+                                                       (t 6))
                                                      3)))
                                            (t (write-string (subseq string i (+ i 3)) out)
                                               (incf i 3)
