@@ -837,13 +837,19 @@ URI ~s contains illegal character ~s at position ~d."
                      (push (if rpos
                                (with-output-to-string (out)
                                  (loop for ch across decoded-string
-                                    for i from curpos by 3
+                                    with i = curpos
                                     do (let ((octet (char-code ch)))
-                                         (if (or (null reserved-chars)
-                                                 (> octet 127)
-                                                 (= (sbit reserved-chars octet) 0))
-                                             (write-char ch out)
-                                             (write-string (subseq string i (+ i 3)) out)))))
+                                         (cond
+                                           ((or (null reserved-chars)
+                                                (> octet 127)
+                                                (= (sbit reserved-chars octet) 0))
+                                            (write-char ch out)
+                                            (incf i
+                                                  (* (if (> octet 127) 2 1)
+                                                     3)))
+                                           (t (write-string (subseq string i (+ i 3)) out)
+                                              (incf i 3)
+                                              )))))
                                decoded-string)
                            strs))))
                    (setf curpos pos))))
