@@ -838,24 +838,23 @@ URI ~s contains illegal character ~s at position ~d."
                                (with-output-to-string (out)
                                  (loop for ch across decoded-string
                                     with i = curpos
-                                    do (let ((octet (char-code ch)))
+                                    do (let ((code (char-code ch)))
                                          (cond
                                            ((or (null reserved-chars)
-                                                (> octet 127)
-                                                (= (sbit reserved-chars octet) 0))
+                                                (> code 127)
+                                                (= (sbit reserved-chars code) 0))
                                             (write-char ch out)
                                             (incf i
                                                   (* (cond
-                                                       ((< octet #x80) 1)
-                                                       ((< octet #x800) 2)
-                                                       ((< octet #x10000) 3)
-                                                       ((< octet #x200000) 4)
-                                                       ((< octet #x4000000) 5)
+                                                       ((< code #x80) 1)
+                                                       ((< code #x800) 2)
+                                                       ((< code #x10000) 3)
+                                                       ((< code #x200000) 4)
+                                                       ((< code #x4000000) 5)
                                                        (t 6))
                                                      3)))
                                            (t (write-string (subseq string i (+ i 3)) out)
-                                              (incf i 3)
-                                              )))))
+                                              (incf i 3))))))
                                decoded-string)
                            strs))))
                    (setf curpos pos))))
