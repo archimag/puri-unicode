@@ -408,6 +408,16 @@
        :condition-type 'uri-parse-error)
      res)
 
+
+    ;;an escaped newline isn't rendered properly
+    (push
+    `(let ((weird-uri "https://example.com/q?foo%0abar%20baz"))
+       (test
+	weird-uri
+	(puri:render-uri (puri:parse-uri weird-uri) nil)
+	:test #'string=)
+     ) res)
+
     `(progn ,@(nreverse res))))
 
 (defun do-tests ()

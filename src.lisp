@@ -355,10 +355,14 @@
 ;; Parsing
 
 (defparameter *excluded-characters*
-    '(;; `delims' (except #\%, because it's handled specially):
+    (append
+     (loop for i from 0 to #x1f
+	   collect (code-char i))
+     '(;; `delims' (except #\%, because it's handled specially):
       #\< #\> #\" #\space #\#
+
       ;; `unwise':
-      #\{ #\} #\| #\\ #\^ #\[ #\] #\`))
+      #\{ #\} #\| #\\ #\^ #\[ #\] #\`)))
 
 (defun reserved-char-vector (chars &key except)
   (do* ((a (make-array 127 :element-type 'bit :initial-element 0))
