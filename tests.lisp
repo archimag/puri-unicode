@@ -408,15 +408,17 @@
        :condition-type 'uri-parse-error)
      res)
 
-
-    ;;an escaped newline isn't rendered properly
-    (push
-    `(let ((weird-uri "https://example.com/q?foo%0abar%20baz"))
-       (test
-	weird-uri
-	(puri:render-uri (puri:parse-uri weird-uri) nil)
-	:test #'string=)
-     ) res)
+    ;;; tests for weird control characters
+    ;; http://www.ietf.org/rfc/rfc2396.txt 2.4.3
+    (dolist (x '("https://example.com/q?foo%0abar%20baz" ;;an escaped newline
+		 "https://example.com/q?%7f" ;; 7f, 127
+		 ))
+      (push
+       `(let ((weird-uri ,x))
+	  (test weird-uri
+		(puri:render-uri (puri:parse-uri weird-uri) nil)
+		:test #'string=)
+	  ) res))
 
     `(progn ,@(nreverse res))))
 

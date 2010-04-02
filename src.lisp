@@ -356,16 +356,18 @@
 
 (defparameter *excluded-characters*
     (append
+     ;; exclude control characters
      (loop for i from 0 to #x1f
 	   collect (code-char i))
      '(;; `delims' (except #\%, because it's handled specially):
       #\< #\> #\" #\space #\#
-
+      #\Rubout ;; (code-char #x7f)
       ;; `unwise':
-      #\{ #\} #\| #\\ #\^ #\[ #\] #\`)))
+      #\{ #\} #\| #\\ #\^ #\[ #\] #\`))
+  "Excluded charcters from RFC2369 (http://www.ietf.org/rfc/rfc2396.txt 2.4.3)")
 
 (defun reserved-char-vector (chars &key except)
-  (do* ((a (make-array 127 :element-type 'bit :initial-element 0))
+  (do* ((a (make-array 128 :element-type 'bit :initial-element 0))
         (chars chars (cdr chars))
         (c (car chars) (car chars)))
       ((null chars) a)
