@@ -385,7 +385,7 @@
 (defparameter *reserved-path-characters*
     (reserved-char-vector
      (append *excluded-characters*
-             '(#\;
+             '(#\; #\%
 ;;;;The rfc says this should be here, but it doesn't make sense.
                ;; #\=
                #\/ #\?))))
