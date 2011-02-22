@@ -244,6 +244,12 @@
     ;; cached sxhash, so we don't have to compute it more than once.
     :initarg :hashcode :initform nil :accessor uri-hashcode)))
 
+(defmethod initialize-instance :after ((uri puri:uri) &key &allow-other-keys)
+  (let ((parsed-path (puri:uri-parsed-path uri)))
+    (when parsed-path
+      (setf (puri:uri-parsed-path uri)
+            parsed-path))))
+
 (defclass urn (uri)
   ((nid :initarg :nid :initform nil :accessor urn-nid)
    (nss :initarg :nss :initform nil :accessor urn-nss)))
