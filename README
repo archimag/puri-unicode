@@ -1,21 +1,22 @@
-PURI - Portable URI Library
-===========================
+PURI-UNICODE - Portable URI Library with UTF-8 encoding support
+===============================================================
 
 AUTHORS
 -------
 Franz, Inc <http://www.franz.com>
 Kevin Rosenberg <kevin@rosenberg.net>
+Andrey Moskvitin <archimag@gmail.com>
 
 
 DOWNLOAD
 --------
-Puri home: http://files.b9.com/puri/
+puri-unicode home: http://github.com/archimag/puri-unicode
 Portable tester home: http://files.b9.com/tester/
 
 
 SUPPORTED PLATFORMS
 -------------------
-   AllegroCL, CLISP, CMUCL, Lispworks, OpenMCL, SBCL
+   AllegroCL, CLISP, CMUCL, Lispworks, SBCL, ClosureCL
 
 
 OVERVIEW
@@ -33,6 +34,10 @@ implementations. Puri completes 126/126 regression tests successfully.
 Franz's unmodified documentation file is included in the file
 uri.html. 
 
+DIFFERENCES BETWEEN PURI-UNICODE and PURI
+-----------------------------------------
+
+* puri-unicode uses the babbel for support utf-8 encoding
 
 DIFFERENCES BETWEEN PURI and NET.URI
 ------------------------------------
@@ -44,3 +49,4 @@ DIFFERENCES BETWEEN PURI and NET.URI
   divergence occurs because Franz's parse-error condition uses
   :format-control and :format-arguments slots which are not in the ANSI
   specification for the parse-error condition.
+
