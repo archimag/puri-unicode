@@ -12,7 +12,7 @@
   :maintainer "Kevin M. Rosenberg <kmr@debian.org>"
   :licence "GNU Lesser General Public License"
   :description "Portable Universal Resource Indentifier Library"
-  :depends-on (#:babel)
+  :depends-on (#:babel #:idna)
   :components
   ((:file "src")))
 
