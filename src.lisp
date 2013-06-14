@@ -25,7 +25,7 @@
 ;; $Id$
 
 (defpackage #:puri
-  (:use #:cl)
+  (:use #:cl #:idna)
   #-allegro (:nicknames #:net.uri)
   (:export
    #:uri                                ; the type and a function
@@ -49,6 +49,7 @@
    #:merge-uris
    #:enough-uri
    #:uri-parsed-path
+   #:uri-parsed-host
    #:render-uri
 
    #:make-uri-space                     ; interning...
@@ -240,15 +241,23 @@
     :initarg :parsed-path
     :initform nil
     :accessor .uri-parsed-path)
+   (parsed-host
+    :initarg :parsed-host
+    :initform nil
+    :accessor .uri-parsed-host)
    (hashcode
     ;; cached sxhash, so we don't have to compute it more than once.
     :initarg :hashcode :initform nil :accessor uri-hashcode)))
 
 (defmethod initialize-instance :after ((uri puri:uri) &key &allow-other-keys)
-  (let ((parsed-path (puri:uri-parsed-path uri)))
+  (let ((parsed-path (puri:uri-parsed-path uri))
+        (parsed-host (puri:uri-parsed-host uri)))
     (when parsed-path
       (setf (puri:uri-parsed-path uri)
-            parsed-path))))
+            parsed-path))
+    (when parsed-host
+      (setf (puri:uri-parsed-host uri)
+            parsed-host))))
 
 (defclass urn (uri)
   ((nid :initarg :nid :initform nil :accessor urn-nid)
@@ -261,11 +270,11 @@
        (prog1 (call-next-method)
          (setf (uri-string self) nil)
          ,@(when (eq name 'uri-path) `((setf (.uri-parsed-path self) nil)))
+         ,@(when (eq name 'uri-host) `((setf (.uri-parsed-host self) nil)))
          (setf (uri-hashcode self) nil))))
   )
 
 (clear-caching-on-slot-change uri-scheme)
-(clear-caching-on-slot-change uri-host)
 (clear-caching-on-slot-change uri-port)
 (clear-caching-on-slot-change uri-path)
 (clear-caching-on-slot-change uri-query)
@@ -277,6 +286,7 @@
   `(make-instance ',(class-name (class-of self))
      :scheme ,(uri-scheme self)
      :host ,(uri-host self)
+     :parsed-host ',(.uri-parsed-host self)
      :port ,(uri-port self)
      :path ',(uri-path self)
      :query ,(uri-query self)
@@ -292,6 +302,8 @@
                  &key place
                       (scheme (when uri (uri-scheme uri)))
                       (host (when uri (uri-host uri)))
+                      (parsed-host
+                       (when uri (copy-seq (.uri-parsed-host uri))))
                       (port (when uri (uri-port uri)))
                       (path (when uri (uri-path uri)))
                       (parsed-path
@@ -304,6 +316,7 @@
   (if* place
      then (setf (uri-scheme place) scheme)
           (setf (uri-host place) host)
+          (setf (.uri-parsed-host place) parsed-host)
           (setf (uri-port place) port)
           (setf (uri-path place) path)
           (setf (.uri-parsed-path place) parsed-path)
@@ -318,12 +331,12 @@
      then ;; allow the compiler to optimize the call to make-instance:
           (make-instance 'uri
             :scheme scheme :host host :port port :path path
-            :parsed-path parsed-path
+            :parsed-path parsed-path :parsed-host parsed-host
             :query query :fragment fragment :plist plist
             :escaped escaped :string nil :hashcode nil)
      else (make-instance class
             :scheme scheme :host host :port port :path path
-            :parsed-path parsed-path
+            :parsed-path parsed-path :parsed-host parsed-host
             :query query :fragment fragment :plist plist
             :escaped escaped :string nil :hashcode nil)))
 
@@ -341,6 +354,17 @@
   (setf (uri-path uri) (render-parsed-path path-list t))
   (setf (.uri-parsed-path uri) path-list)
   path-list)
+
+(defmethod uri-parsed-host ((uri uri))
+  (when (uri-host uri)
+    (when (null (.uri-parsed-host uri))
+      (setf (.uri-parsed-host uri)
+        (to-unicode (uri-host uri))))
+    (.uri-parsed-host uri)))
+
+(defmethod (setf uri-parsed-host) (host (uri uri))
+  (setf (uri-host uri) (to-ascii host))
+  (setf (.uri-parsed-host uri) (to-unicode host)))
 
 (defun uri-authority (uri)
   (when (uri-host uri)
@@ -456,9 +480,9 @@
 
     (when (and scheme (eq :urn scheme))
       (return-from parse-uri
-        (make-instance 'urn :scheme scheme :nid host :nss path)))
+        (make-instance 'urn :scheme scheme :nid host :nss (to-ascii path))))
 
-    (when host (setq host (decode-escaped-encoding host escape)))
+    (when host (setq host (to-ascii (decode-escaped-encoding host escape))))
     (when port
       (setq port (read-from-string port))
       (when (not (numberp port)) (error "port is not a number: ~s." port))

@@ -250,6 +250,24 @@
                     (parse-uri "ftp://parcftp.xerox.com:/pub/pcl/mop/"))
             :test 'string=)
           res)
+    (push `(test
+            "http://xn--mller-kva.example.com/"
+            (format nil "~a"
+                    (parse-uri "http://xn--mller-kva.example.com/"))
+            :test 'string=)
+          res)
+    (push `(test
+            "http://xn--mller-kva.example.com/"
+            (format nil "~a"
+                    (parse-uri "http://müller.example.com/"))
+            :test 'string=)
+          res)
+    (push `(test
+            "http://example.xn--fiqz9s/"
+            (format nil "~a"
+                    (parse-uri "http://example.中國/"))
+            :test 'string=)
+          res)
 
 ;;;; enough-uri tests
     (dolist (x `(("http://www.franz.com/foo/bar/baz.htm"
