@@ -249,14 +249,14 @@
     ;; cached sxhash, so we don't have to compute it more than once.
     :initarg :hashcode :initform nil :accessor uri-hashcode)))
 
-(defmethod initialize-instance :after ((uri puri:uri) &key &allow-other-keys)
-  (let ((parsed-path (puri:uri-parsed-path uri))
-        (parsed-host (puri:uri-parsed-host uri)))
+(defmethod initialize-instance :after ((uri uri) &key &allow-other-keys)
+  (let ((parsed-path (uri-parsed-path uri))
+        (parsed-host (uri-parsed-host uri)))
     (when parsed-path
-      (setf (puri:uri-parsed-path uri)
+      (setf (uri-parsed-path uri)
             parsed-path))
     (when parsed-host
-      (setf (puri:uri-parsed-host uri)
+      (setf (uri-parsed-host uri)
             parsed-host))))
 
 (defclass urn (uri)
@@ -1389,7 +1389,7 @@ Executes the forms once for each uri with var bound to the current uri"
           "#u takes a string or list argument: ~s" arg)))))
 
 
-(set-dispatch-macro-character #\# #\u #'puri::sharp-u)
+(set-dispatch-macro-character #\# #\u #'sharp-u)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
